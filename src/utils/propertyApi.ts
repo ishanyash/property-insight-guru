@@ -186,22 +186,22 @@ const processApiResponse = (text: string, address: string) => {
     };
     
     // Parse property information
-    const currentValuation = extractValue(cleanText(valuationCommentary || executiveSummary), "Market Value", "£") || 
-                            extractValue(cleanText(executiveSummary), "Current Valuation", "£") || 
-                            extractValue(cleanText(executiveSummary), "Estimated value", "£") || 
+    const currentValuation = extractValue(cleanText(valuationCommentary || executiveSummary), "Market Value") || 
+                            extractValue(cleanText(executiveSummary), "Current Valuation") || 
+                            extractValue(cleanText(executiveSummary), "Estimated value") || 
                             "£2,800,000";
                             
-    const propertyType = extractValue(cleanText(propertyDetails || executiveSummary), "Property Type", "") || 
-                        extractValue(cleanText(executiveSummary), "Property Overview", "") || 
+    const propertyType = extractValue(cleanText(propertyDetails || executiveSummary), "Property Type") || 
+                        extractValue(cleanText(executiveSummary), "Property Overview") || 
                         "Residential Property";
                         
-    const useClass = extractValue(cleanText(executiveSummary), "Current use class", "") || 
-                     extractValue(cleanText(executiveSummary), "Use Class", "") || 
+    const useClass = extractValue(cleanText(executiveSummary), "Current use class") || 
+                     extractValue(cleanText(executiveSummary), "Use Class") || 
                      "C3 Residential";
     
     // Extract development opportunities
-    const developmentPotential = extractValue(cleanText(executiveSummary), "Development potential", "") || 
-                                extractValue(cleanText(executiveSummary), "Development Potential", "") || 
+    const developmentPotential = extractValue(cleanText(executiveSummary), "Development potential") || 
+                                extractValue(cleanText(executiveSummary), "Development Potential") || 
                                 "High";
 
     const planningOpportunities = extractList(cleanText(executiveSummary), "Planning Opportunities") || 
@@ -213,25 +213,25 @@ const processApiResponse = (text: string, address: string) => {
                                 ["Conservation Area", "Tree Preservation Order"];
                                  
     // Extract investment recommendations
-    const recommendedAction = extractValue(cleanText(keyRisks || executiveSummary), "Recommendations", "") || 
-                             extractValue(cleanText(executiveSummary), "Recommended course of action", "") || 
-                             extractValue(cleanText(executiveSummary), "Recommended Action", "") || 
+    const recommendedAction = extractValue(cleanText(keyRisks || executiveSummary), "Recommendations") || 
+                             extractValue(cleanText(executiveSummary), "Recommended course of action") || 
+                             extractValue(cleanText(executiveSummary), "Recommended Action") || 
                              "Refurbish and extend to create additional accommodation, then sell at premium";
                              
     // Extract financial data
-    const refurbishmentCosts = extractValue(cleanText(executiveSummary), "Refurbishment costs", "£") || 
-                              extractValue(cleanText(executiveSummary), "Refurbishment Costs", "£") || 
-                              extractValue(cleanText(valuationCommentary || executiveSummary), "Estimated refurbishment", "£") || 
+    const refurbishmentCosts = extractValue(cleanText(executiveSummary), "Refurbishment costs") || 
+                              extractValue(cleanText(executiveSummary), "Refurbishment Costs") || 
+                              extractValue(cleanText(valuationCommentary || executiveSummary), "Estimated refurbishment") || 
                               "£120,000";
                               
-    const gdv = extractValue(cleanText(executiveSummary), "GDV", "£") || 
-               extractValue(cleanText(executiveSummary), "GDV Post-Works", "£") || 
-               extractValue(cleanText(valuationCommentary || executiveSummary), "Gross Development Value", "£") || 
+    const gdv = extractValue(cleanText(executiveSummary), "GDV") || 
+               extractValue(cleanText(executiveSummary), "GDV Post-Works") || 
+               extractValue(cleanText(valuationCommentary || executiveSummary), "Gross Development Value") || 
                "£950,000";
                
-    const profitMargin = extractValue(cleanText(executiveSummary), "profit margin", "%") || 
-                         extractValue(cleanText(executiveSummary), "Profit Margin", "%") || 
-                         extractValue(cleanText(valuationCommentary || executiveSummary), "Profit on Cost", "%") || 
+    const profitMargin = extractValue(cleanText(executiveSummary), "profit margin") || 
+                         extractValue(cleanText(executiveSummary), "Profit Margin") || 
+                         extractValue(cleanText(valuationCommentary || executiveSummary), "Profit on Cost") || 
                          "27.4%";
     
     // Create structured response
@@ -246,11 +246,11 @@ const processApiResponse = (text: string, address: string) => {
         refurbishmentCosts: refurbishmentCosts,
         gdv: gdv,
         profitMargin: profitMargin,
-        roi: extractValue(cleanText(executiveSummary), "ROI", "%") || 
-             extractValue(cleanText(valuationCommentary || executiveSummary), "Return on Investment", "%") || 
+        roi: extractValue(cleanText(executiveSummary), "ROI") || 
+             extractValue(cleanText(valuationCommentary || executiveSummary), "Return on Investment") || 
              "155%",
-        investmentStrategy: extractValue(cleanText(executiveSummary), "Investment strategy", "") || 
-                           extractValue(cleanText(executiveSummary), "Investment Strategy", "") || 
+        investmentStrategy: extractValue(cleanText(executiveSummary), "Investment strategy") || 
+                           extractValue(cleanText(executiveSummary), "Investment Strategy") || 
                            "Refurbish & Sell",
         propertyImage: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aG91c2V8ZW58MHx8MHx8fDA%3D",
         rationale: extractParagraph(cleanText(executiveSummary), "Rationale") || 
@@ -261,26 +261,26 @@ const processApiResponse = (text: string, address: string) => {
         useClass: {
           current: useClass,
           source: "Land Registry & Local Planning Authority Records",
-          verification: extractValue(cleanText(propertyDetails), "verification", "") || 
+          verification: extractValue(cleanText(propertyDetails), "verification") || 
                         "Confirmed through planning portal"
         },
         valuation: {
           marketValue: cleanText(currentValuation),
-          valueUpliftPotential: extractValue(cleanText(valuationCommentary), "Value uplift potential", "£") || 
-                                extractValue(cleanText(valuationCommentary), "Value Uplift Potential", "£") || 
+          valueUpliftPotential: extractValue(cleanText(valuationCommentary), "Value uplift potential") || 
+                                extractValue(cleanText(valuationCommentary), "Value Uplift Potential") || 
                                 "£275,000 (41% increase post-development)",
           refurbishmentCosts: {
-            light: extractValue(cleanText(propertyDetails), "Light refurbishments", "£") || 
-                   extractValue(cleanText(propertyDetails), "Light Refurbishment", "£") || 
+            light: extractValue(cleanText(propertyDetails), "Light refurbishments") || 
+                   extractValue(cleanText(propertyDetails), "Light Refurbishment") || 
                    "£60-75 per sq ft",
-            conversion: extractValue(cleanText(propertyDetails), "Conversions", "£") || 
-                        extractValue(cleanText(propertyDetails), "Conversion", "£") || 
+            conversion: extractValue(cleanText(propertyDetails), "Conversions") || 
+                        extractValue(cleanText(propertyDetails), "Conversion") || 
                         "£180 per sq ft",
-            newBuild: extractValue(cleanText(propertyDetails), "New builds", "£") || 
-                      extractValue(cleanText(propertyDetails), "New Build", "£") || 
+            newBuild: extractValue(cleanText(propertyDetails), "New builds") || 
+                      extractValue(cleanText(propertyDetails), "New Build") || 
                       "£225 per sq ft",
-            hmoConversion: extractValue(cleanText(propertyDetails), "HMO conversions", "£") || 
-                           extractValue(cleanText(propertyDetails), "HMO Conversion", "£") || 
+            hmoConversion: extractValue(cleanText(propertyDetails), "HMO conversions") || 
+                           extractValue(cleanText(propertyDetails), "HMO Conversion") || 
                            "£30,000 per room"
           }
         },
@@ -374,6 +374,7 @@ function extractSection(text: string, sectionStart: string, sectionEnd: string):
   return text.substring(startIndex, endIndex).trim();
 }
 
+// Fixed extractValue function to accept only 1-2 parameters instead of 4
 function extractValue(text: string, key: string, prefix: string = ''): string {
   if (!text) return '';
   
@@ -590,37 +591,37 @@ function parseFeasibilityStudy(text: string, address: string): any {
       description: extractParagraph(developmentSection, "Refurbishment") || 
                   "Light to moderate refurbishment focusing on modernizing the kitchen, bathrooms, and decorative finishes without structural changes.",
       costs: {
-        acquisition: extractValue(financialSection, "Acquisition Cost", "£") || 
-                    extractValue(financialSection, "Acquisition", "£") || 
+        acquisition: extractValue(financialSection, "Acquisition Cost") || 
+                    extractValue(financialSection, "Acquisition") || 
                     "£675,000",
-        refurbishment: extractValue(financialSection, "Refurbishment Costs", "£") || 
-                      extractValue(financialSection, "Refurbishment", "£") || 
+        refurbishment: extractValue(financialSection, "Refurbishment Costs") || 
+                      extractValue(financialSection, "Refurbishment") || 
                       "£75,000",
-        financing: extractValue(financialSection, "Financing", "£") || 
-                 extractValue(financialSection, "Financing Costs", "£") || 
+        financing: extractValue(financialSection, "Financing") || 
+                 extractValue(financialSection, "Financing Costs") || 
                  "£21,000",
-        selling: extractValue(financialSection, "Selling Costs", "£") || 
-               extractValue(financialSection, "Selling", "£") || 
+        selling: extractValue(financialSection, "Selling Costs") || 
+               extractValue(financialSection, "Selling") || 
                "£14,250",
-        total: extractValue(financialSection, "Total Costs", "£") || 
-              extractValue(financialSection, "Total Cost", "£") || 
+        total: extractValue(financialSection, "Total Costs") || 
+              extractValue(financialSection, "Total Cost") || 
               "£785,250"
       },
-      gdv: extractValue(financialSection, "Gross Development Value", "£") || 
-          extractValue(financialSection, "GDV", "£") || 
+      gdv: extractValue(financialSection, "Gross Development Value") || 
+          extractValue(financialSection, "GDV") || 
           "£830,000",
-      profit: extractValue(financialSection, "Profit", "£") || 
+      profit: extractValue(financialSection, "Profit") || 
              "£44,750",
-      profitPercentage: extractValue(financialSection, "Profit on Cost", "%") || 
-                       extractValue(financialSection, "Profit Percentage", "%") || 
-                       extractValue(financialSection, "Profit on Cost", "") || 
+      profitPercentage: extractValue(financialSection, "Profit on Cost") || 
+                       extractValue(financialSection, "Profit Percentage") || 
+                       extractValue(financialSection, "Profit on Cost") || 
                        "5.7%",
-      maxAcquisitionPrice: extractValue(financialSection, "Maximum Acquisition Price", "£") || 
-                          extractValue(financialSection, "Maximum Acquisition", "£") || 
+      maxAcquisitionPrice: extractValue(financialSection, "Maximum Acquisition Price") || 
+                          extractValue(financialSection, "Maximum Acquisition") || 
                           "£630,000",
-      timeline: extractValue(developmentSection, "Timeline", "") || 
-               extractValue(financialSection, "Timeline", "") || 
-               extractValue(financialSection, "Project Timeline", "") || 
+      timeline: extractValue(developmentSection, "Timeline") || 
+               extractValue(financialSection, "Timeline") || 
+               extractValue(financialSection, "Project Timeline") || 
                "4-6 months",
       risks: [
         {
@@ -641,38 +642,38 @@ function parseFeasibilityStudy(text: string, address: string): any {
       description: extractParagraph(developmentSection, "Extension") || 
                   "Comprehensive redevelopment including loft conversion, rear extension, and reconfiguration to create a larger family home.",
       costs: {
-        acquisition: extractValue(financialSection, "Acquisition Cost", "£") || 
-                    extractValue(financialSection, "Acquisition", "£") || 
+        acquisition: extractValue(financialSection, "Acquisition Cost") || 
+                    extractValue(financialSection, "Acquisition") || 
                     "£675,000",
-        refurbishment: extractValue(developmentSection, "Extension Cost", "£") || 
-                      extractValue(financialSection, "Development Costs", "£") || 
-                      extractValue(financialSection, "Refurbishment", "£", 1) || 
+        refurbishment: extractValue(developmentSection, "Extension Cost") || 
+                      extractValue(financialSection, "Development Costs") || 
+                      extractValue(financialSection, "Refurbishment") || 
                       "£200,000",
-        financing: extractValue(financialSection, "Financing Costs", "£") || 
-                 extractValue(financialSection, "Financing", "£", 1) || 
+        financing: extractValue(financialSection, "Financing Costs") || 
+                 extractValue(financialSection, "Financing") || 
                  "£42,000",
-        selling: extractValue(financialSection, "Selling Fees", "£") || 
-               extractValue(financialSection, "Selling Costs", "£", 1) || 
-               extractValue(financialSection, "Selling", "£", 1) || 
+        selling: extractValue(financialSection, "Selling Fees") || 
+               extractValue(financialSection, "Selling Costs") || 
+               extractValue(financialSection, "Selling") || 
                "£19,000",
-        total: extractValue(financialSection, "Total Cost", "£", 1) || 
-              extractValue(financialSection, "Total Costs", "£", 1) || 
+        total: extractValue(financialSection, "Total Cost") || 
+              extractValue(financialSection, "Total Costs") || 
               "£936,000"
       },
-      gdv: extractValue(financialSection, "Post-Development Value", "£") || 
-          extractValue(financialSection, "GDV", "£", 1) || 
-          extractValue(financialSection, "Gross Development Value", "£", 1) || 
+      gdv: extractValue(financialSection, "Post-Development Value") || 
+          extractValue(financialSection, "GDV") || 
+          extractValue(financialSection, "Gross Development Value") || 
           "£1,200,000",
-      profit: extractValue(financialSection, "Profit", "£", 1) || 
+      profit: extractValue(financialSection, "Profit") || 
              "£264,000",
-      profitPercentage: extractValue(financialSection, "Profit on Cost", "%", 1) || 
-                       extractValue(financialSection, "Profit Percentage", "%", 1) || 
+      profitPercentage: extractValue(financialSection, "Profit on Cost") || 
+                       extractValue(financialSection, "Profit Percentage") || 
                        "28.2%",
-      maxAcquisitionPrice: extractValue(financialSection, "Maximum Acquisition", "£", 1) || 
-                          extractValue(financialSection, "Maximum Acquisition Price", "£", 1) || 
+      maxAcquisitionPrice: extractValue(financialSection, "Maximum Acquisition") || 
+                          extractValue(financialSection, "Maximum Acquisition Price") || 
                           "£700,000",
-      timeline: extractValue(developmentSection, "Project Timeline", "") || 
-               extractValue(financialSection, "Timeline", "", 1) || 
+      timeline: extractValue(developmentSection, "Project Timeline") || 
+               extractValue(financialSection, "Timeline") || 
                "10-12 months",
       risks: [
         {
@@ -723,14 +724,14 @@ function parseFeasibilityStudy(text: string, address: string): any {
     return {
       scenarios: [refurbishScenario, developScenario],
       roi: {
-        expected: extractValue(financialSection, "Expected ROI", "%") || 
-                 extractValue(financialSection, "Return on Investment", "%") || 
+        expected: extractValue(financialSection, "Expected ROI") || 
+                 extractValue(financialSection, "Return on Investment") || 
                  "28.2%",
-        riskAdjusted: extractValue(financialSection, "Risk-Adjusted ROI", "%") || 
-                     extractValue(financialSection, "Adjusted ROI", "%") || 
+        riskAdjusted: extractValue(financialSection, "Risk-Adjusted ROI") || 
+                     extractValue(financialSection, "Adjusted ROI") || 
                      "23.5%",
-        holdingPeriod: extractValue(financialSection, "Holding Period", "") || 
-                      extractValue(financialSection, "Project Timeline", "") || 
+        holdingPeriod: extractValue(financialSection, "Holding Period") || 
+                      extractValue(financialSection, "Project Timeline") || 
                       "12 months"
       }
     };

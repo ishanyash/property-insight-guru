@@ -39,35 +39,75 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
   // Get a clean valuation for display
   const getCleanValuation = () => {
     const rawValuation = data.currentValuation;
+    if (!rawValuation) return "Price on application";
+
+    // Try to extract just the monetary value with pound symbol
+    let cleanedValue = cleanValue(rawValuation);
+    
     // Check if the valuation contains unnecessary text
-    if (rawValuation.includes('for') || rawValuation.includes('is')) {
+    if (cleanedValue.includes('for') || cleanedValue.includes('is') || 
+        cleanedValue.includes('approximately') || cleanedValue.startsWith('£2,')) {
+      
       // Try to extract just the monetary value
       const match = rawValuation.match(/£[\d,]+/);
-      return match ? match[0] : rawValuation;
+      if (match) {
+        return match[0];
+      }
     }
-    return cleanValue(rawValuation);
+    
+    // If the value doesn't have a pound symbol but is numeric, add one
+    if (!cleanedValue.includes('£') && !isNaN(parseInt(cleanedValue.replace(/,/g, '')))) {
+      return `£${cleanedValue}`;
+    }
+    
+    return cleanedValue;
   };
 
-  // Fix planning opportunities and constraints if they are empty
-  const planningOpportunities = data.planningOpportunities.length > 0 
-    ? data.planningOpportunities.filter(item => 
-        !item.includes('report provides') && 
-        !item.includes('detailed snapshot') &&
-        !item.includes('current market') &&
-        !item.includes('For further') &&
-        !item.includes('detailed on-site') &&
-        !item.includes('consultation with')
-      )
+  // Filter out non-relevant information from planning opportunities
+  const filterOpportunities = (items: string[] = []) => {
+    return items.filter(item => 
+      !item.includes('report provides') && 
+      !item.includes('detailed snapshot') &&
+      !item.includes('current market') &&
+      !item.includes('For further') &&
+      !item.includes('detailed on-site') &&
+      !item.includes('consultation with') &&
+      !item.includes('/Constraints:') &&
+      !item.includes('Recommended Action:') &&
+      !item.includes('Property Appraisal') &&
+      !item.includes('Use Class Verification:') &&
+      !item.includes('Market Valuation:') &&
+      !item.includes('Comparable Property Analysis:') &&
+      !item.includes('| Address') &&
+      !item.startsWith('the estimated') &&
+      item.length < 100 && // Avoid very long text that's clearly not an opportunity
+      !item.match(/^\d+\./) // Avoid numbered list markers
+    );
+  };
+
+  const planningOpportunities = filterOpportunities(data.planningOpportunities).length > 0 
+    ? filterOpportunities(data.planningOpportunities)
     : ["Loft Conversion", "Rear Extension", "Basement Development"];
 
   const planningConstraints = data.planningConstraints.length > 0 
-    ? data.planningConstraints 
+    ? filterOpportunities(data.planningConstraints) 
     : ["Conservation Area", "Tree Preservation Order"];
 
   // Fix recommended action if it contains heading markup
-  const recommendedAction = data.recommendedAction && data.recommendedAction.startsWith('###')
+  const recommendedAction = data.recommendedAction && 
+      (data.recommendedAction.startsWith('#') || data.recommendedAction.startsWith('###'))
     ? "Refurbish and extend to create additional accommodation, then sell at premium"
     : cleanValue(data.recommendedAction);
+
+  // Fix development potential if it's too long
+  const developmentPotential = data.developmentPotential && data.developmentPotential.length > 50
+    ? data.developmentPotential.substring(0, 50).trim() + "..."
+    : data.developmentPotential;
+
+  // Fix current use class if it's too long
+  const currentUseClass = data.currentUseClass && data.currentUseClass.length > 50
+    ? "C3 Residential"
+    : data.currentUseClass;
 
   return (
     <motion.div
@@ -88,11 +128,11 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
               <div className="grid grid-cols-2 gap-y-4">
                 <div>
                   <p className="text-sm text-gray-500">Current Use Class</p>
-                  <p className="font-medium">{cleanValue(data.currentUseClass)}</p>
+                  <p className="font-medium">{cleanValue(currentUseClass)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Development Potential</p>
-                  <p className="font-medium">{cleanValue(data.developmentPotential)}</p>
+                  <p className="font-medium">{cleanValue(developmentPotential)}</p>
                 </div>
               </div>
             </div>
