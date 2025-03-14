@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { ApiKeyModal } from './ApiKeyModal';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -47,6 +48,7 @@ const Header = () => {
           </nav>
           
           <div className="flex items-center space-x-4">
+            <ApiKeyModal />
             <Button 
               variant="ghost" 
               className="hidden md:inline-flex hover:bg-blue-50 transition-colors duration-300"
