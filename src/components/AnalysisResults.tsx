@@ -7,8 +7,9 @@ import PropertyAppraisal from './PropertyAppraisal';
 import FeasibilityStudy from './FeasibilityStudy';
 import PlanningOpportunities from './PlanningOpportunities';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, PrinterIcon, ShareIcon } from 'lucide-react';
+import { DownloadIcon, PrinterIcon, ShareIcon, FileTextIcon } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface AnalysisResultsProps {
   data: any;
@@ -17,6 +18,7 @@ interface AnalysisResultsProps {
 
 const AnalysisResults = ({ data, address }: AnalysisResultsProps) => {
   const [activeTab, setActiveTab] = useState("executive-summary");
+  const [showRawResponse, setShowRawResponse] = useState(false);
 
   const handlePrint = () => {
     window.print();
@@ -58,6 +60,14 @@ const AnalysisResults = ({ data, address }: AnalysisResultsProps) => {
     });
   };
 
+  const generateDate = () => {
+    return new Date().toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       <motion.div 
@@ -68,13 +78,17 @@ const AnalysisResults = ({ data, address }: AnalysisResultsProps) => {
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-3xl font-semibold mb-2">{address}</h1>
+            <div className="flex items-center gap-2 mb-2">
+              <h1 className="text-3xl font-semibold">{address}</h1>
+              <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
+                {data.executiveSummary.currentUseClass}
+              </Badge>
+            </div>
             <p className="text-gray-500">
-              Property analysis completed on {new Date().toLocaleDateString('en-GB', { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
-              })}
+              Property analysis completed on {generateDate()}
+            </p>
+            <p className="text-gray-500 mt-1">
+              Current valuation: <span className="font-medium text-green-600">{data.executiveSummary.currentValuation}</span>
             </p>
           </div>
           
@@ -106,34 +120,51 @@ const AnalysisResults = ({ data, address }: AnalysisResultsProps) => {
               <ShareIcon className="h-4 w-4" />
               <span>Share</span>
             </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => setShowRawResponse(!showRawResponse)}
+            >
+              <FileTextIcon className="h-4 w-4" />
+              <span>{showRawResponse ? 'Hide Raw Data' : 'View Raw Data'}</span>
+            </Button>
           </div>
         </div>
       </motion.div>
       
-      <Tabs defaultValue="executive-summary" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 mb-8">
-          <TabsTrigger value="executive-summary">Executive Summary</TabsTrigger>
-          <TabsTrigger value="property-appraisal">Property Appraisal</TabsTrigger>
-          <TabsTrigger value="feasibility-study">Feasibility Study</TabsTrigger>
-          <TabsTrigger value="planning-opportunities">Planning Opportunities</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="executive-summary">
-          <ExecutiveSummary data={data.executiveSummary} />
-        </TabsContent>
-        
-        <TabsContent value="property-appraisal">
-          <PropertyAppraisal data={data.propertyAppraisal} />
-        </TabsContent>
-        
-        <TabsContent value="feasibility-study">
-          <FeasibilityStudy data={data.feasibilityStudy} />
-        </TabsContent>
-        
-        <TabsContent value="planning-opportunities">
-          <PlanningOpportunities data={data.planningOpportunities} />
-        </TabsContent>
-      </Tabs>
+      {showRawResponse ? (
+        <div className="bg-gray-50 p-4 rounded-lg border mb-6 overflow-auto max-h-[70vh]">
+          <pre className="text-xs">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        </div>
+      ) : (
+        <Tabs defaultValue="executive-summary" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-4 mb-8">
+            <TabsTrigger value="executive-summary">Executive Summary</TabsTrigger>
+            <TabsTrigger value="property-appraisal">Property Appraisal</TabsTrigger>
+            <TabsTrigger value="feasibility-study">Feasibility Study</TabsTrigger>
+            <TabsTrigger value="planning-opportunities">Planning Opportunities</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="executive-summary">
+            <ExecutiveSummary data={data.executiveSummary} />
+          </TabsContent>
+          
+          <TabsContent value="property-appraisal">
+            <PropertyAppraisal data={data.propertyAppraisal} />
+          </TabsContent>
+          
+          <TabsContent value="feasibility-study">
+            <FeasibilityStudy data={data.feasibilityStudy} />
+          </TabsContent>
+          
+          <TabsContent value="planning-opportunities">
+            <PlanningOpportunities data={data.planningOpportunities} />
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import AnalysisResults from '@/components/AnalysisResults';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
 
 const Analysis = () => {
   const location = useLocation();
@@ -36,7 +36,7 @@ const Analysis = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className="mb-8"
+            className="mb-8 flex justify-between items-center"
           >
             <Button
               variant="ghost"
@@ -45,6 +45,15 @@ const Analysis = () => {
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Home
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <Home className="h-4 w-4" />
+              Analyze Another Property
             </Button>
           </motion.div>
           
