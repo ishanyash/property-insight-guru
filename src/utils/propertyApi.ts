@@ -11,7 +11,7 @@ interface ApiConfig {
 
 // Initialize with default values and a predefined API key
 let apiConfig: ApiConfig = {
-  apiKey: "YOUR_OPENAI_API_KEY_HERE", // Replace this with your actual API key
+  apiKey: "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", // Replace this with your actual API key
   useRealApi: true, // Set to true by default to use the real API
   model: "gpt-4o"
 };
