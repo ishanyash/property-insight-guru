@@ -1,4 +1,3 @@
-
 import { toast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 
@@ -24,6 +23,7 @@ export const setApiConfig = (config: Partial<ApiConfig>) => {
   // Save to localStorage for persistence between sessions
   if (config.apiKey) {
     localStorage.setItem('openai_api_key', config.apiKey);
+    localStorage.setItem('openai_model', config.model || 'gpt-4o');
     apiConfig.useRealApi = true;
   }
   
@@ -33,10 +33,17 @@ export const setApiConfig = (config: Partial<ApiConfig>) => {
 // Load API key from localStorage on init
 export const initApiConfig = () => {
   const savedApiKey = localStorage.getItem('openai_api_key');
+  const savedModel = localStorage.getItem('openai_model');
+  
   if (savedApiKey) {
     apiConfig.apiKey = savedApiKey;
     apiConfig.useRealApi = true;
   }
+  
+  if (savedModel) {
+    apiConfig.model = savedModel;
+  }
+  
   return apiConfig;
 };
 
@@ -57,6 +64,7 @@ export const searchProperty = async (address: string) => {
     }
     
     sonnerToast.loading("Analyzing property with AI, this may take a moment...");
+    console.log(`Using OpenAI model: ${apiConfig.model}`);
     
     // Real API call to OpenAI
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -78,16 +86,18 @@ export const searchProperty = async (address: string) => {
           }
         ],
         temperature: 0.2,
-        max_tokens: 1500
+        max_tokens: 2000
       })
     });
     
     if (!response.ok) {
       const errorData = await response.json();
+      console.error("API error details:", errorData);
       throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
     
     const result = await response.json();
+    console.log("API response received:", result);
     sonnerToast.dismiss();
     sonnerToast.success("Analysis complete!");
     
@@ -102,7 +112,7 @@ export const searchProperty = async (address: string) => {
   } catch (error) {
     console.error('Error analyzing property:', error);
     sonnerToast.dismiss();
-    sonnerToast.error("Error analyzing property");
+    sonnerToast.error("Error analyzing property: " + (error instanceof Error ? error.message : "Failed to analyze property"));
     
     // For errors, use mock data if no API key was provided (expected behavior)
     if (!apiConfig.apiKey) {
@@ -124,24 +134,144 @@ export const searchProperty = async (address: string) => {
 const processApiResponse = (text: string, address: string) => {
   console.log("Processing API response...");
   
-  // In a real production app, we would parse the text response properly here
-  // For simplicity, we're returning mock data with the real address
-  const mockData = getMockAnalysisData(address);
-  
-  // Add some random variation to make it feel more real
-  const propertyTypes = ["Semi-detached", "Terraced", "Detached", "Apartment"];
-  const randomIndex = Math.floor(Math.random() * propertyTypes.length);
-  
-  // Update a few fields in the mock data
-  if (mockData.propertyAppraisal?.comparables) {
-    mockData.propertyAppraisal.comparables[0].address = `Near ${address}`;
-    mockData.propertyAppraisal.comparables[0].propertyType = `${propertyTypes[randomIndex]}, 3 bedroom`;
+  try {
+    // Attempt to extract structured data from the response
+    // This is a basic implementation that would need refinement in production
+    const executiveSummary = extractSection(text, "Executive Summary", "Property Appraisal");
+    const propertyAppraisal = extractSection(text, "Property Appraisal", "Feasibility Study");
+    const feasibilityStudy = extractSection(text, "Feasibility Study", "Planning Opportunities");
+    const planningOpportunities = extractSection(text, "Planning Opportunities", "Local Area Commentary");
+    
+    // If we couldn't extract the content properly, return mock data
+    if (!executiveSummary) {
+      console.log("Couldn't parse API response properly, using mock data");
+      return getMockAnalysisData(address);
+    }
+    
+    // Very basic extraction of key details
+    const currentValuation = extractValue(executiveSummary, "Current valuation", "£");
+    const refurbishmentCosts = extractValue(executiveSummary, "Refurbishment costs", "£");
+    const gdv = extractValue(executiveSummary, "GDV", "£");
+    const profitMargin = extractValue(executiveSummary, "profit margin", "%");
+    
+    // Create a structured response
+    return {
+      executiveSummary: {
+        currentUseClass: extractValue(executiveSummary, "Current use class", ""),
+        developmentPotential: extractValue(executiveSummary, "Development potential", ""),
+        planningOpportunities: extractList(executiveSummary, "Planning opportunities"),
+        planningConstraints: extractList(executiveSummary, "Planning constraints"),
+        recommendedAction: extractValue(executiveSummary, "Recommended course of action", ""),
+        currentValuation: currentValuation || "£675,000",
+        refurbishmentCosts: refurbishmentCosts || "£120,000",
+        gdv: gdv || "£950,000",
+        profitMargin: profitMargin || "27.4%",
+        roi: extractValue(executiveSummary, "ROI", "%") || "155%",
+        investmentStrategy: extractValue(executiveSummary, "Investment strategy", ""),
+        propertyImage: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aG91c2V8ZW58MHx8MHx8fDA%3D",
+        rationale: extractParagraph(executiveSummary, "Rationale")
+      },
+      propertyAppraisal: {
+        useClass: {
+          current: extractValue(propertyAppraisal, "Current use class", ""),
+          source: "Land Registry & Local Planning Authority Records",
+          verification: extractValue(propertyAppraisal, "verification", "")
+        },
+        valuation: {
+          marketValue: currentValuation || "£675,000",
+          valueUpliftPotential: extractValue(propertyAppraisal, "Value uplift potential", "£"),
+          refurbishmentCosts: {
+            light: extractValue(propertyAppraisal, "Light refurbishments", "£"),
+            conversion: extractValue(propertyAppraisal, "Conversions", "£"),
+            newBuild: extractValue(propertyAppraisal, "New builds", "£"),
+            hmoConversion: extractValue(propertyAppraisal, "HMO conversions", "£")
+          }
+        },
+        comparables: extractComparables(propertyAppraisal) || [
+          {
+            address: `Near ${address}`,
+            price: "£720,000",
+            date: "Mar 2023",
+            propertyType: "Semi-detached, 3 bedroom",
+            size: "1,450 sq ft",
+            rating: "High",
+            reason: "Very similar property on same street, recently renovated",
+            link: "https://www.rightmove.co.uk"
+          }
+        ]
+      },
+      feasibilityStudy: parseFeasibilityStudy(feasibilityStudy, address) || getMockAnalysisData(address).feasibilityStudy,
+      planningOpportunities: parsePlanningOpportunities(planningOpportunities) || getMockAnalysisData(address).planningOpportunities
+    };
+  } catch (error) {
+    console.error("Error parsing API response:", error);
+    // Fallback to mock data if parsing fails
+    return getMockAnalysisData(address);
   }
-  
-  // In a production app, you would properly parse the response from the API
-  // This would involve NLP or requesting structured output from OpenAI
-  return mockData;
 };
+
+// Helper functions to extract data from text
+function extractSection(text: string, sectionStart: string, sectionEnd: string): string {
+  const startRegex = new RegExp(`${sectionStart}[:\\s]*`, 'i');
+  const endRegex = new RegExp(`${sectionEnd}[:\\s]*`, 'i');
+  
+  const startMatch = text.match(startRegex);
+  if (!startMatch) return '';
+  
+  const startIndex = startMatch.index! + startMatch[0].length;
+  const endMatch = text.substring(startIndex).match(endRegex);
+  const endIndex = endMatch ? startIndex + endMatch.index! : text.length;
+  
+  return text.substring(startIndex, endIndex).trim();
+}
+
+function extractValue(text: string, key: string, prefix: string = ''): string {
+  const regex = new RegExp(`${key}[:\\s]*([^\\n.]*)(\\.|\\n)`, 'i');
+  const match = text.match(regex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  return '';
+}
+
+function extractList(text: string, key: string): string[] {
+  const regex = new RegExp(`${key}[:\\s]*((?:[^\\n]*\\n?)+)`, 'i');
+  const match = text.match(regex);
+  if (match && match[1]) {
+    return match[1]
+      .split(/[,\n]/)
+      .map(item => item.trim())
+      .filter(item => item.length > 0);
+  }
+  return [];
+}
+
+function extractParagraph(text: string, key: string): string {
+  const regex = new RegExp(`${key}[:\\s]*((?:[^\\n]*\\n?)+)`, 'i');
+  const match = text.match(regex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  return '';
+}
+
+function extractComparables(text: string): any[] {
+  // This is a placeholder - in a real implementation, you would
+  // need to parse the comparables table from the text
+  return [];
+}
+
+function parseFeasibilityStudy(text: string, address: string): any {
+  // This is a placeholder - in a real implementation, you would
+  // need to parse the feasibility study from the text
+  return null;
+}
+
+function parsePlanningOpportunities(text: string): any {
+  // This is a placeholder - in a real implementation, you would
+  // need to parse the planning opportunities from the text
+  return null;
+}
 
 // Mock data for demonstration purposes or when API is unavailable
 const getMockAnalysisData = (address: string) => {
@@ -347,3 +477,4 @@ const getMockAnalysisData = (address: string) => {
     }
   };
 };
+

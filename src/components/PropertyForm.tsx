@@ -107,7 +107,7 @@ const PropertyForm = () => {
             {!hasApiKey && (
               <div className="flex flex-col items-center space-y-2 p-3 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-700">
-                  Using demo mode without an API key. For real analysis:
+                  <strong>You need an OpenAI API key for real analysis.</strong> Currently using demo mode.
                 </p>
                 <ApiKeyModal />
               </div>
