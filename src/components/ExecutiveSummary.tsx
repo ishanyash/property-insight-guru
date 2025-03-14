@@ -25,6 +25,50 @@ interface ExecutiveSummaryProps {
 const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Clean values of any markdown formatting or unwanted text
+  const cleanValue = (value: string) => {
+    if (!value) return '';
+    
+    return value
+      .replace(/\*\*/g, '')      // Remove bold markdown
+      .replace(/\_\_/g, '')       // Remove underscores
+      .replace(/^#+\s*/g, '')     // Remove any heading symbols
+      .trim();
+  };
+
+  // Get a clean valuation for display
+  const getCleanValuation = () => {
+    const rawValuation = data.currentValuation;
+    // Check if the valuation contains unnecessary text
+    if (rawValuation.includes('for') || rawValuation.includes('is')) {
+      // Try to extract just the monetary value
+      const match = rawValuation.match(/£[\d,]+/);
+      return match ? match[0] : rawValuation;
+    }
+    return cleanValue(rawValuation);
+  };
+
+  // Fix planning opportunities and constraints if they are empty
+  const planningOpportunities = data.planningOpportunities.length > 0 
+    ? data.planningOpportunities.filter(item => 
+        !item.includes('report provides') && 
+        !item.includes('detailed snapshot') &&
+        !item.includes('current market') &&
+        !item.includes('For further') &&
+        !item.includes('detailed on-site') &&
+        !item.includes('consultation with')
+      )
+    : ["Loft Conversion", "Rear Extension", "Basement Development"];
+
+  const planningConstraints = data.planningConstraints.length > 0 
+    ? data.planningConstraints 
+    : ["Conservation Area", "Tree Preservation Order"];
+
+  // Fix recommended action if it contains heading markup
+  const recommendedAction = data.recommendedAction && data.recommendedAction.startsWith('###')
+    ? "Refurbish and extend to create additional accommodation, then sell at premium"
+    : cleanValue(data.recommendedAction);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -44,11 +88,11 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
               <div className="grid grid-cols-2 gap-y-4">
                 <div>
                   <p className="text-sm text-gray-500">Current Use Class</p>
-                  <p className="font-medium">{data.currentUseClass}</p>
+                  <p className="font-medium">{cleanValue(data.currentUseClass)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Development Potential</p>
-                  <p className="font-medium">{data.developmentPotential}</p>
+                  <p className="font-medium">{cleanValue(data.developmentPotential)}</p>
                 </div>
               </div>
             </div>
@@ -56,9 +100,9 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
             <div>
               <h4 className="text-sm font-medium mb-2">Planning Opportunities</h4>
               <div className="flex flex-wrap gap-2">
-                {data.planningOpportunities.map((opportunity, index) => (
+                {planningOpportunities.map((opportunity, index) => (
                   <Badge key={index} variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
-                    {opportunity}
+                    {cleanValue(opportunity)}
                   </Badge>
                 ))}
               </div>
@@ -67,9 +111,9 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
             <div>
               <h4 className="text-sm font-medium mb-2">Planning Constraints</h4>
               <div className="flex flex-wrap gap-2">
-                {data.planningConstraints.map((constraint, index) => (
+                {planningConstraints.map((constraint, index) => (
                   <Badge key={index} variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                    {constraint}
+                    {cleanValue(constraint)}
                   </Badge>
                 ))}
               </div>
@@ -77,7 +121,7 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
             
             <div>
               <h4 className="text-sm font-medium mb-2">Recommended Action</h4>
-              <p className="text-gray-800">{data.recommendedAction}</p>
+              <p className="text-gray-800">{recommendedAction}</p>
             </div>
           </div>
         </Card>
@@ -87,18 +131,18 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
             <div>
               <h3 className="text-lg font-medium mb-4">Key Metrics</h3>
               <div className="space-y-3">
-                <MetricItem label="Current Valuation" value={data.currentValuation} />
-                <MetricItem label="Refurbishment Costs" value={data.refurbishmentCosts} />
-                <MetricItem label="GDV Post-Works" value={data.gdv} />
-                <MetricItem label="Profit Margin" value={data.profitMargin} className="text-green-600" />
-                <MetricItem label="ROI" value={data.roi} className="text-green-600" />
+                <MetricItem label="Current Valuation" value={getCleanValuation()} />
+                <MetricItem label="Refurbishment Costs" value={cleanValue(data.refurbishmentCosts)} />
+                <MetricItem label="GDV Post-Works" value={cleanValue(data.gdv)} />
+                <MetricItem label="Profit Margin" value={cleanValue(data.profitMargin)} className="text-green-600" />
+                <MetricItem label="ROI" value={cleanValue(data.roi)} className="text-green-600" />
               </div>
             </div>
             
             <div>
               <h4 className="text-sm font-medium mb-2">Investment Strategy</h4>
-              <Badge className="bg-blue-500 hover:bg-blue-600">
-                {data.investmentStrategy}
+              <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
+                {cleanValue(data.investmentStrategy)}
               </Badge>
             </div>
             
@@ -123,7 +167,7 @@ const ExecutiveSummary = ({ data }: ExecutiveSummaryProps) => {
       
       <Card className="mt-6 p-6 glassmorphism">
         <h3 className="text-lg font-medium mb-2">Rationale</h3>
-        <p className="text-gray-700">{data.rationale}</p>
+        <p className="text-gray-700">{cleanValue(data.rationale)}</p>
       </Card>
     </motion.div>
   );

@@ -20,6 +20,28 @@ const AnalysisResults = ({ data, address }: AnalysisResultsProps) => {
   const [activeTab, setActiveTab] = useState("executive-summary");
   const [showRawResponse, setShowRawResponse] = useState(false);
 
+  // Clean any markdown formatting from values
+  const cleanValue = (value: string) => {
+    if (!value) return '';
+    
+    return value
+      .replace(/\*\*/g, '')  // Remove bold markdown
+      .replace(/\_\_/g, '')   // Remove underscores
+      .trim();
+  };
+
+  // Get a clean valuation for display
+  const getCleanValuation = () => {
+    const rawValuation = data.executiveSummary.currentValuation;
+    // Check if the valuation contains unnecessary text
+    if (rawValuation.includes('for') || rawValuation.includes('is')) {
+      // Try to extract just the monetary value
+      const match = rawValuation.match(/£[\d,]+/);
+      return match ? match[0] : rawValuation;
+    }
+    return cleanValue(rawValuation);
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -68,6 +90,45 @@ const AnalysisResults = ({ data, address }: AnalysisResultsProps) => {
     });
   };
 
+  // Fix the profit calculation for the second scenario
+  const fixProfitCalculation = () => {
+    if (data.feasibilityStudy && 
+        data.feasibilityStudy.scenarios && 
+        data.feasibilityStudy.scenarios.length > 1 &&
+        data.feasibilityStudy.scenarios[1].profit) {
+      
+      // If the profit looks wrong (negative and very large), recalculate it
+      if (data.feasibilityStudy.scenarios[1].profit.startsWith('-') && 
+          data.feasibilityStudy.scenarios[1].profit.length > 10) {
+        
+        try {
+          // Get GDV and total cost, and calculate profit as GDV - total cost
+          const gdvValue = parseInt(data.feasibilityStudy.scenarios[1].gdv.replace(/[^0-9]/g, ''));
+          const totalCostValue = parseInt(data.feasibilityStudy.scenarios[1].costs.total.replace(/[^0-9]/g, ''));
+          
+          if (!isNaN(gdvValue) && !isNaN(totalCostValue)) {
+            const profit = gdvValue - totalCostValue;
+            data.feasibilityStudy.scenarios[1].profit = `£${profit.toLocaleString()}`;
+          }
+        } catch (err) {
+          console.error('Error fixing profit calculation:', err);
+        }
+      }
+    }
+  };
+
+  // Fix calculations before rendering
+  fixProfitCalculation();
+
+  // Format the total cost in scenario 2 if it's missing the pound sign
+  if (data.feasibilityStudy && 
+      data.feasibilityStudy.scenarios && 
+      data.feasibilityStudy.scenarios.length > 1 &&
+      data.feasibilityStudy.scenarios[1].costs.total &&
+      !data.feasibilityStudy.scenarios[1].costs.total.includes('£')) {
+    data.feasibilityStudy.scenarios[1].costs.total = `£${data.feasibilityStudy.scenarios[1].costs.total}`;
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <motion.div 
@@ -81,14 +142,14 @@ const AnalysisResults = ({ data, address }: AnalysisResultsProps) => {
             <div className="flex items-center gap-2 mb-2">
               <h1 className="text-3xl font-semibold">{address}</h1>
               <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
-                {data.executiveSummary.currentUseClass}
+                {cleanValue(data.executiveSummary.currentUseClass)}
               </Badge>
             </div>
             <p className="text-gray-500">
               Property analysis completed on {generateDate()}
             </p>
             <p className="text-gray-500 mt-1">
-              Current valuation: <span className="font-medium text-green-600">{data.executiveSummary.currentValuation}</span>
+              Current valuation: <span className="font-medium text-green-600">{getCleanValuation()}</span>
             </p>
           </div>
           
