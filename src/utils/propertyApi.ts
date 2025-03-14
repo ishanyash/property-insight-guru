@@ -9,10 +9,10 @@ interface ApiConfig {
   model: string;
 }
 
-// Initialize with default values
+// Initialize with default values and a predefined API key
 let apiConfig: ApiConfig = {
-  apiKey: null,
-  useRealApi: false,
+  apiKey: "YOUR_OPENAI_API_KEY_HERE", // Replace this with your actual API key
+  useRealApi: true, // Set to true by default to use the real API
   model: "gpt-4o"
 };
 
@@ -30,18 +30,21 @@ export const setApiConfig = (config: Partial<ApiConfig>) => {
   return apiConfig;
 };
 
-// Load API key from localStorage on init
+// Load API key from localStorage on init, but prefer the hardcoded one if available
 export const initApiConfig = () => {
-  const savedApiKey = localStorage.getItem('openai_api_key');
-  const savedModel = localStorage.getItem('openai_model');
-  
-  if (savedApiKey) {
-    apiConfig.apiKey = savedApiKey;
-    apiConfig.useRealApi = true;
-  }
-  
-  if (savedModel) {
-    apiConfig.model = savedModel;
+  // Only use localStorage values if no default API key is set
+  if (!apiConfig.apiKey || apiConfig.apiKey === "YOUR_OPENAI_API_KEY_HERE") {
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    const savedModel = localStorage.getItem('openai_model');
+    
+    if (savedApiKey) {
+      apiConfig.apiKey = savedApiKey;
+      apiConfig.useRealApi = true;
+    }
+    
+    if (savedModel) {
+      apiConfig.model = savedModel;
+    }
   }
   
   return apiConfig;
@@ -477,4 +480,3 @@ const getMockAnalysisData = (address: string) => {
     }
   };
 };
-

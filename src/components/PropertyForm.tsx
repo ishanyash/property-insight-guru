@@ -1,27 +1,19 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { searchProperty, initApiConfig } from '@/utils/propertyApi';
+import { searchProperty } from '@/utils/propertyApi';
 import { toast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
-import { ApiKeyModal } from './ApiKeyModal';
 
 const PropertyForm = () => {
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasApiKey, setHasApiKey] = useState(false);
   const navigate = useNavigate();
-
-  // Check for API key on component mount
-  useEffect(() => {
-    const config = initApiConfig();
-    setHasApiKey(!!config.apiKey);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,15 +95,7 @@ const PropertyForm = () => {
             )}
           </Button>
           
-          <div className="text-center space-y-2">
-            {!hasApiKey && (
-              <div className="flex flex-col items-center space-y-2 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  <strong>You need an OpenAI API key for real analysis.</strong> Currently using demo mode.
-                </p>
-                <ApiKeyModal />
-              </div>
-            )}
+          <div className="text-center">
             <p className="text-sm text-gray-500">
               Instant AI-powered property analysis for developers and investors
             </p>

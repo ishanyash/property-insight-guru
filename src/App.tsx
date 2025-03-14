@@ -8,6 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import Analysis from "./pages/Analysis";
 import NotFound from "./pages/NotFound";
+import { initApiConfig } from "./utils/propertyApi";
+
+// Initialize API configuration on app start
+initApiConfig();
 
 // Add framer-motion for page transitions
 const queryClient = new QueryClient();
